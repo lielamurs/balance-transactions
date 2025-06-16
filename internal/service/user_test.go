@@ -65,7 +65,7 @@ func TestParseAmount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseAmount(tt.amount)
+			got, err := parseAmount(tt.amount)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -121,7 +121,7 @@ func TestFormatAmount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := FormatAmount(tt.amount)
+			got := formatAmount(tt.amount)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -241,7 +241,7 @@ func TestCalculateNewBalance(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CalculateNewBalance(tt.currentBalance, tt.transactionAmount, tt.state)
+			got, err := calculateNewBalance(tt.currentBalance, tt.transactionAmount, tt.state)
 
 			if tt.wantErr {
 				assert.Error(t, err)

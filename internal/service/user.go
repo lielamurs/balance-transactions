@@ -35,13 +35,13 @@ func (s *UserService) GetBalance(userID uint64) (*dto.BalanceResponse, error) {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	balance, err := ParseAmount(user.Balance)
+	balance, err := parseAmount(user.Balance)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"userID": userID, "balance": user.Balance, "error": err}).Error("Invalid balance format")
 		return nil, fmt.Errorf("invalid balance format: %w", err)
 	}
 
-	formattedBalance := FormatAmount(balance)
+	formattedBalance := formatAmount(balance)
 	logrus.WithFields(logrus.Fields{"userID": userID, "balance": formattedBalance}).Info("Balance retrieved successfully")
 	return &dto.BalanceResponse{
 		UserID:  user.ID,
@@ -78,17 +78,17 @@ func (s *UserService) ProcessTransaction(userID uint64, req dto.TransactionReque
 			return fmt.Errorf("failed to get user: %w", err)
 		}
 
-		currentBalance, err := ParseAmount(user.Balance)
+		currentBalance, err := parseAmount(user.Balance)
 		if err != nil {
 			return fmt.Errorf("invalid current balance: %w", err)
 		}
 
-		transactionAmount, err := ParseAmount(req.Amount)
+		transactionAmount, err := parseAmount(req.Amount)
 		if err != nil {
 			return fmt.Errorf("invalid transaction amount: %w", err)
 		}
 
-		newBalance, err := CalculateNewBalance(currentBalance, transactionAmount, req.State)
+		newBalance, err := calculateNewBalance(currentBalance, transactionAmount, req.State)
 		if err != nil {
 			if err.Error() == "insufficient balance" {
 				logrus.WithFields(logrus.Fields{
@@ -101,7 +101,7 @@ func (s *UserService) ProcessTransaction(userID uint64, req dto.TransactionReque
 			return err
 		}
 
-		newBalanceStr := FormatAmount(newBalance)
+		newBalanceStr := formatAmount(newBalance)
 		if err := s.userRepo.UpdateUserBalance(tx, userID, newBalanceStr); err != nil {
 			return fmt.Errorf("failed to update balance: %w", err)
 		}
@@ -129,15 +129,15 @@ func (s *UserService) ProcessTransaction(userID uint64, req dto.TransactionReque
 	})
 }
 
-func ParseAmount(amount string) (float64, error) {
+func parseAmount(amount string) (float64, error) {
 	return strconv.ParseFloat(amount, 64)
 }
 
-func FormatAmount(amount float64) string {
+func formatAmount(amount float64) string {
 	return fmt.Sprintf("%.2f", amount)
 }
 
-func CalculateNewBalance(currentBalance, transactionAmount float64, state string) (float64, error) {
+func calculateNewBalance(currentBalance, transactionAmount float64, state string) (float64, error) {
 	switch state {
 	case "win":
 		return currentBalance + transactionAmount, nil
